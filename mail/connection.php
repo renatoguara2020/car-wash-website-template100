@@ -30,7 +30,9 @@ if (
         $stmt->bindValue(':email', $email, PDO::PARAM_STR);
 
         $stmt->execute();
-        echo 'New record created successfully';
+        if ($stmt->rowCount() > 0) {
+            echo 'New record created successfully';
+        }
     } catch (PDOException $e) {
         echo '</br>' .
             $e->getMessage() .
