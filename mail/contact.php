@@ -1,71 +1,74 @@
 <?php
 
-require __DIR__.'../../bibliotecas/PHPMailer/SMTP.php';
-require __DIR__.'../../bibliotecas/PHPMailer/PHPMailer.php';
-require __DIR__.'../../bibliotecas/PHPMailer/Exception.php';
+require __DIR__ . '../../bibliotecas/PHPMailer/SMTP.php';
+require __DIR__ . '../../bibliotecas/PHPMailer/PHPMailer.php';
+require __DIR__ . '../../bibliotecas/PHPMailer/Exception.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-
 date_default_timezone_set('America/Sao_Paulo');
 
-$name = $email = $message = $subject = "";
+$name = $email = $message = $subject = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $myDate = date('d/m/Y H:i:s');
 
-$myDate = date('d/m/Y H:i:s');
+    if (isset($_POST['name']) && $_POST['name'] != null) {
+        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
+    }
+    if (isset($_POST['email']) && $_POST['email'] != null) {
+        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    }
+    if (isset($_POST['message']) && $_POST['message'] != null) {
+        $message = filter_input(
+            INPUT_POST,
+            'message',
+            FILTER_SANITIZE_SPECIAL_CHARS
+        );
+    }
+    if (isset($_POST['subject']) && $_POST['subject'] != null) {
+        $subject = filter_input(
+            INPUT_POST,
+            'subject',
+            FILTER_SANITIZE_SPECIAL_CHARS
+        );
+    }
 
-if (isset($_POST['name']) && $_POST['name'] != null) {
-$name = filter_input(INPUT_POST,'name', FILTER_SANITIZE_SPECIAL_CHARS);
-}
-if (isset($_POST['email']) && $_POST['email'] != null) {
-$email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-}
-if (isset($_POST['message']) && $_POST['message'] != null) {
-$message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_SPECIAL_CHARS);
-}
-if (isset($_POST['subject']) && $_POST['subject'] != null) {
-$subject = filter_input(INPUT_POST, 'subject', FILTER_SANITIZE_SPECIAL_CHARS);
-}
+    ########################################## PHPMailer#############################################
+    $mail = new PHPMailer();
 
-########################################## PHPMailer#############################################
-$mail = new PHPMailer();
+    //$mail->SMTPDebug = 2; //Enable verbose debug output
+    $mail->isSMTP(); //Send using SMTP
+    $mail->Host = 'smtp.gmail.com'; //Set the SMTP server to send through
+    $mail->SMTPAuth = true; //Enable SMTP authentication
+    $mail->Username = 'renatoguara2020@gmail.com'; //SMTP username
+    $mail->Password = 'agciqpqrqferdazp'; // password is optional //SMTP password
+    // $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+    $mail->Port = 587;
+    $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
 
-//$mail->SMTPDebug = 2; //Enable verbose debug output
-$mail->isSMTP(); //Send using SMTP
-$mail->Host = 'smtp.gmail.com'; //Set the SMTP server to send through
-$mail->SMTPAuth = true; //Enable SMTP authentication
-$mail->Username = 'renatoguara2020@gmail.com'; //SMTP username
-$mail->Password = 'agci'; // password is optional //SMTP password 
-// $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; //Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
-$mail->Port = 587;
-$mail->CharSet = 'UTF-8';
-$mail->Encoding = 'base64';
+    //Use a fixed address in your own domain as the from address
+    //**DO NOT** use the submitter's address here as it will be forgery
+    //and will cause your messages to fail SPF checks
+    $mail->setFrom('renatoguara2020@gmail.com', 'bootstrapfriendly');
 
+    $mail->addAddress('renatoguara2019@yahoo.com', 'bootstrapfriendly');
+    $mail->addAddress('renatoguara2020@gmail.com', 'bootstrapfriendly');
+    $mail->addAddress('gcreuza.alves@gmail.com', 'bootstrapfriendly');
+    $mail->addAddress('renatoguara2023@gmail.com', 'bootstrapfriendly');
 
+    //Put the submitter's address in a reply-to header
+    //This will fail if the address provided is invalid,
+    //in which case we should ignore the whole request
+    if ($mail->addReplyTo($_POST['email'], 'bootstrapfriendly')) {
 
-//Use a fixed address in your own domain as the from address
-//**DO NOT** use the submitter's address here as it will be forgery
-//and will cause your messages to fail SPF checks
-$mail->setFrom('renatoguara2020@gmail.com', 'bootstrapfriendly');
-
-
-$mail->addAddress('renatoguara2019@yahoo.com', 'bootstrapfriendly');
-$mail->addAddress('renatoguara2020@gmail.com', 'bootstrapfriendly');
-$mail->addAddress('gcreuza.alves@gmail.com', 'bootstrapfriendly');
-$mail->addAddress('renatoguara2023@gmail.com', 'bootstrapfriendly');
-
-
-//Put the submitter's address in a reply-to header
-//This will fail if the address provided is invalid,
-//in which case we should ignore the whole request
-if ($mail->addReplyTo($_POST['email'], 'bootstrapfriendly')) {
-$mail->Subject = 'Contact Request from bootstrapfriendly demo form';
-//Keep it simple - don't use HTML
-$mail->isHTML(true);
-?>
+        $mail->Subject = 'Contact Request from bootstrapfriendly demo form';
+        //Keep it simple - don't use HTML
+        $mail->isHTML(true);
+        ?>
 
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -102,24 +105,22 @@ $mail->Body = "
 ";
 //Send the message, check for errors
 if (!$mail->send()) {
-//The reason for failing to send will be in $mail->ErrorInfo
-//but you shouldn't display errors to users - process the error, log it on your server.
-http_response_code(500);
-echo "<div class='alert alert-danger'>Sorry, something went wrong. Please try again later.</div>";
+    //The reason for failing to send will be in $mail->ErrorInfo
+    //but you shouldn't display errors to users - process the error, log it on your server.
+    http_response_code(500);
+    echo "<div class='alert alert-danger'>Sorry, something went wrong. Please try again later.</div>";
 } else {
-
-echo "<div class='alert alert-success' role='alert'>message sent successfully </div>";
-}
-} else {
-
-echo "<b class='text-danger'>Invalid email address, message ignored.</b>";
+    echo "<div class='alert alert-success' role='alert'>message sent successfully </div>";
 }
 
+    } else {
+        echo "<b class='text-danger'>Invalid email address, message ignored.</b>";
+    }
 } else {
-echo "<b class='text-danger'>Sorry, something went wrong. Please try again later.</b>";
+    echo "<b class='text-danger'>Sorry, something went wrong. Please try again later.</b>";
 }
 
-header('Location:http://localhost/car-repair-html-template/contact.html')
+header('Location:http://localhost/car-repair-html-template/contact.html');
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
